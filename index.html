@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Qui-Ski</title>
+  <meta name="description" content="Piste, impianti di risalita, bar e ristoranti del comprensorio di Pila, da OpenStreetMap">
+  <meta name="theme-color" content="#1c4a86">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Qui-Ski">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="Qui-Ski">
+        <svg class="logo" viewBox="0 0 50 50" width="50" height="50" aria-hidden="true">
+          <rect width="50" height="50" rx="11" fill="#fff"/>
+          <path d="M6 38 19 17l6 9 5-7 14 19Z" fill="#1c4a86"/>
+          <path d="M19 17l3.4 5.4-3.4-2-3.2 2Z M30 19l2.6 3.6-2.6-1.4-2.3 1.4Z" fill="#fff"/>
+          <path d="M9 43 41 33" stroke="#d6281e" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">Qui-Ski</span>
+      </div>
+      <form class="cerca" id="form-cerca" role="search">
+        <label for="cerca" class="sr-only">Cerca una pista, un impianto o un locale</label>
+        <input id="cerca" type="search" placeholder="Cerca pista…" autocomplete="off" enterkeyhint="search">
+      </form>
+      <div class="carb">
+        <button class="cat-btn" id="categoria" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="cat-menu">
+          <span id="categoria-testo">Cosa mostrare</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="cat-menu" id="cat-menu" role="group" aria-label="Cosa mostrare: puoi sceglierne più di uno" hidden>
+          <p class="cat-titolo">Piste <small>(per difficoltà)</small></p>
+          <div id="cat-piste"></div>
+          <p class="cat-titolo">Altro</p>
+          <div id="cat-voci"></div>
+          <button class="cat-ok" id="cat-ok" type="button">Fatto</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="corpo">
+      <div id="mappa" class="mappa" role="application" aria-label="Mappa delle piste e degli impianti di Pila"></div>
+
+      <div class="simula" id="simula" role="status" hidden>
+        <b>Simulazione</b> <span id="simula-testo">sei a Pila</span>
+      </div>
+
+      <div class="fab-col">
+        <button class="fab" id="btn-centra" type="button" title="Torna alla mia posizione" aria-label="Torna alla mia posizione">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        <button class="fab fab-nero" id="btn-elenco" type="button" title="Elenco di piste, impianti e locali" aria-label="Apri l'elenco di piste, impianti e locali" aria-controls="pannello" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.6" fill="currentColor"/><circle cx="4.5" cy="12" r="1.6" fill="currentColor"/><circle cx="4.5" cy="18" r="1.6" fill="currentColor"/></svg>
+        </button>
+        <button class="fab" id="btn-comprensorio" type="button" title="Inquadra tutto il comprensorio" aria-label="Inquadra tutto il comprensorio">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 9V4h5M21 9V4h-5M3 15v5h5M21 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <div class="fab-azioni">
+        <button class="fab fab-grande fab-impianto" id="btn-impianto" type="button" title="L'impianto più vicino" aria-label="Mostra l'impianto più vicino">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M2 5 22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 3.6V9" stroke="currentColor" stroke-width="2"/><rect x="6" y="9" width="12" height="10" rx="3" fill="currentColor"/><rect x="8" y="11" width="8" height="3.5" rx="1" fill="var(--su-colore)"/></svg>
+        </button>
+        <button class="fab fab-grande fab-locale" id="btn-locale" type="button" title="Il bar o ristorante più vicino" aria-label="Mostra il bar o ristorante più vicino">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M7 2v8M5 2v5a2 2 0 0 0 4 0V2M7 10v12M16.5 22V2c-2.5 1-3.5 4-3.5 8h3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </main>
+
+    <section class="pannello" id="pannello" aria-label="Piste, impianti e locali" hidden>
+      <header class="pannello-testa">
+        <h2>Pila</h2>
+        <button class="chiudi" id="btn-chiudi" type="button" aria-label="Chiudi l'elenco e torna alla mappa">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="pannello-corpo">
+        <div class="stato" id="stato" role="status" aria-live="polite"></div>
+        <a class="emergenza" href="tel:112">Incidente sulle piste? <b>Chiama il 112</b></a>
+
+        <label class="auto" for="sfondo">
+          <span>MAPPA</span>
+          <select id="sfondo">
+            <option value="topo" selected>Topografica</option>
+            <option value="stradale">Stradale</option>
+            <option value="satellite">Satellite</option>
+          </select>
+        </label>
+
+        <div class="sommario">
+          <div class="kpi kpi-blu"><b id="k-km">–</b><span>km di piste</span></div>
+          <div class="kpi"><b id="k-imp">–</b><span>impianti di<br>risalita</span></div>
+          <div class="kpi kpi-loc"><b id="k-loc">–</b><span>bar e<br>ristoranti</span></div>
+        </div>
+
+        <div class="filtri" role="group" aria-label="Cosa elencare">
+          <button class="chip sezione" type="button" data-sezione="piste" aria-pressed="true">Piste</button>
+          <button class="chip sezione" type="button" data-sezione="impianti" aria-pressed="false">Impianti</button>
+          <button class="chip sezione" type="button" data-sezione="locali" aria-pressed="false">Bar e ristoranti</button>
+          <span class="sep" aria-hidden="true"></span>
+          <button class="chip ordine" type="button" data-ordine="distanza" aria-pressed="true">Per distanza</button>
+          <button class="chip ordine" type="button" data-ordine="nome" aria-pressed="false">Per nome</button>
+        </div>
+
+        <ol class="lista" id="lista"></ol>
+
+        <footer class="fonti">
+          Dati: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> e chi contribuisce
+          (licenza ODbL), aggiornati al <span id="data-osm">–</span>; mappa topografica © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA).
+          Le informazioni sono inserite da volontari e possono essere incomplete: per aperture di piste e impianti, orari e bollettino
+          valanghe fai fede alle informazioni ufficiali del comprensorio. Se trovi un errore puoi correggerlo su OpenStreetMap.
+        </footer>
+        <p class="versione" id="versione"></p>
+      </div>
+    </section>
+
+    <section class="pannello scheda" id="scheda" aria-labelledby="scheda-titolo" hidden>
+      <header class="pannello-testa">
+        <h2 id="scheda-titolo">Scheda</h2>
+        <button class="chiudi" id="btn-chiudi-scheda" type="button" aria-label="Chiudi la scheda e torna alla mappa">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </header>
+      <div class="pannello-corpo" id="scheda-contenuto"></div>
+    </section>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
