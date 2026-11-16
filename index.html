@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Qui-Ski</title>
-  <meta name="description" content="Piste, impianti di risalita, bar e ristoranti del comprensorio di Pila, da OpenStreetMap">
+  <meta name="description" content="Piste, impianti di risalita, bar e ristoranti dei comprensori sciistici italiani, da OpenStreetMap">
   <meta name="theme-color" content="#1c4a86">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div class="app">
@@ -29,7 +29,7 @@
       </div>
       <form class="cerca" id="form-cerca" role="search">
         <label for="cerca" class="sr-only">Cerca una pista, un impianto o un locale</label>
-        <input id="cerca" type="search" placeholder="Cerca pista…" autocomplete="off" enterkeyhint="search">
+        <input id="cerca" type="search" placeholder="Cerca comprensorio…" autocomplete="off" enterkeyhint="search">
       </form>
       <div class="carb">
         <button class="cat-btn" id="categoria" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="cat-menu">
@@ -65,7 +65,7 @@
         </button>
       </div>
 
-      <div class="fab-azioni">
+      <div class="fab-azioni" id="fab-azioni">
         <button class="fab fab-grande fab-impianto" id="btn-impianto" type="button" title="L'impianto più vicino" aria-label="Mostra l'impianto più vicino">
           <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M2 5 22 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 3.6V9" stroke="currentColor" stroke-width="2"/><rect x="6" y="9" width="12" height="10" rx="3" fill="currentColor"/><rect x="8" y="11" width="8" height="3.5" rx="1" fill="var(--su-colore)"/></svg>
         </button>
@@ -77,7 +77,7 @@
 
     <section class="pannello" id="pannello" aria-label="Piste, impianti e locali" hidden>
       <header class="pannello-testa">
-        <h2>Pila</h2>
+        <h2 id="pannello-titolo">Qui-Ski</h2>
         <button class="chiudi" id="btn-chiudi" type="button" aria-label="Chiudi l'elenco e torna alla mappa">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
         </button>
@@ -102,6 +102,7 @@
         </div>
 
         <div class="filtri" role="group" aria-label="Cosa elencare">
+          <button class="chip sezione" type="button" data-sezione="comprensori" aria-pressed="false">Comprensori</button>
           <button class="chip sezione" type="button" data-sezione="piste" aria-pressed="true">Piste</button>
           <button class="chip sezione" type="button" data-sezione="impianti" aria-pressed="false">Impianti</button>
           <button class="chip sezione" type="button" data-sezione="locali" aria-pressed="false">Bar e ristoranti</button>
@@ -134,6 +135,6 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js?v=1"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

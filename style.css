@@ -19,8 +19,8 @@
   --barra: #1c4a86;
   /* difficoltà delle piste */
   --p-novice: #2fa84f; --p-easy: #1f6fd1; --p-intermediate: #d6281e; --p-advanced: #111418;
-  --p-freeride: #e07b00; --p-nd: #8a8f99;
-  --impianto: #34424f; --locale: #c2711a; --stazione: #34424f;
+  --p-freeride: #e07b00; --p-nd: #8a8f99; --p-fondo: #6b3fa0;
+  --impianto: #34424f; --locale: #c2711a; --stazione: #34424f; --confine: #0b3d91;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -38,6 +38,7 @@
     --su-colore: #0c1220;
     --barra: #15355f;
     --p-advanced: #000;
+    --confine: #9cc3ff;
     color-scheme: dark;
   }
   .mappa:not(.satellite) .leaflet-tile-pane { filter: brightness(.78) contrast(1.08) saturate(.75); }
