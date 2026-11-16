@@ -1,39 +1,41 @@
 # Qui-Ski
 
-Web app per il telefono per chi scia, con lo stesso aspetto e funzionamento di Qui-Trekking.
-Per ora è una **simulazione sul comprensorio di Pila** (Valle d'Aosta).
+Web app per il telefono per chi scia, con lo stesso aspetto e funzionamento di Qui-Trekking:
+piste, impianti, bar e ristoranti dei **comprensori sciistici di tutta Italia**, da OpenStreetMap.
 
-- **Piste** di OpenStreetMap (`piste:type`), colorate come in Italia: verde (campo scuola), blu, rossa, nera;
-  i collegamenti sono grigi tratteggiati. Numero della pista sulla linea, lunghezza, battitura.
-- **Impianti di risalita** (`aerialway`): funivie, cabinovie, seggiovie, skilift e tappeti, con nome sulla mappa;
-  la scheda ha tipo, lunghezza, durata della corsa, portata oraria, posti, cupola, stazioni a valle e a monte
-  e le piste che partono dall'arrivo.
-- **Stazioni** degli impianti, **confine del comprensorio** (`landuse=winter_sports`).
-- **Bar e ristoranti** a meno di 300 m da una pista o da un impianto (rifugi `tourism=alpine_hut` se ci sono).
+- Da lontano (zoom basso) la mappa mostra i **comprensori** (`landuse=winter_sports`) come pallini blu, più grandi
+  per quelli con più km di piste; toccandone uno lo si inquadra. La ricerca in alto trova un comprensorio per nome.
+- Da vicino: **piste** colorate come in Italia (verde, blu, rossa, nera; fondo viola tratteggiato; collegamenti
+  grigi tratteggiati) con numero, **impianti di risalita** con nome, **stazioni**, **confine del comprensorio**
+  e **bar, ristoranti e rifugi** a meno di 300 m da piste o impianti.
+- Schede a tutto schermo per piste, impianti e locali; elenco della zona visibile per distanza o per nome,
+  ed elenco di tutti i comprensori.
 - Pulsanti in basso: impianto più vicino (alla stazione a valle) e bar o ristorante più vicino.
-- Elenco a tutto schermo (piste, impianti, locali) per distanza o per nome; ogni voce apre la sua scheda.
 
 ## Simulazione
 
-Se il GPS non c'è, non è permesso o è a più di 15 km da Pila, l'app fa finta che tu sia alla stazione delle
-cabinovie di Pila (in alto compare **Simulazione**): così distanze e "più vicino" si possono provare da casa.
+Se il GPS non c'è, non è permesso o non è in Italia, l'app fa finta che tu sia alla stazione delle cabinovie
+di Pila (in alto compare **Simulazione**): così distanze e "più vicino" si possono provare da casa.
 
 ## Dati
 
-`dati/pila.json` viene da `osm_ski.py` (sul computer, accanto a `osm_italia.py`), che legge il PBF Italia
-di Geofabrik e scrive un file nello stesso formato di una risposta di Overpass:
+1. Sul computer, accanto a `osm_italia.py`, `osm_ski.py` legge il PBF Italia di Geofabrik e scrive `ski.json.gz`:
 
-    py -3.12 -X utf8 osm_ski.py italy-latest.osm.pbf --zona=pila
+       py -3.12 -X utf8 osm_ski.py italy-latest.osm.pbf
+
+2. `strumenti/tessere.py` lo divide in tessere da 0,2° e scrive l'indice dei comprensori:
+
+       py -3.12 -X utf8 strumenti/tessere.py ..\PBF\OSM-Italia\ski.json.gz dati
+
+   - `dati/indice.json`: data dei dati, elenco delle tessere e dei comprensori (nome, centro, riquadro, km di piste, impianti)
+   - `dati/t/<i>_<j>.json`: gli elementi che iniziano nella tessera
+
+L'app scarica solo le tessere della zona che si guarda.
 
 Dati © OpenStreetMap e chi contribuisce (ODbL). Mappa topografica © OpenTopoMap (CC-BY-SA).
+Il PBF Italia non contiene la parte svizzera o francese dei comprensori di confine (per esempio Zermatt).
 
 ## Pubblicazione
 
 Impostazioni del repository → Pages → Source: **GitHub Actions**. A ogni modifica su `main` il workflow
 `.github/workflows/pubblica.yml` pubblica il sito su https://quivicino.github.io/Ski/.
-
-## File
-
-- `index.html`, `style.css`: interfaccia (stili di Qui-Trekking, barra blu)
-- `app.js`: mappa, piste, impianti, elenco, schede, posizione (vera o simulata)
-- `dati/pila.json`: dati OSM di Pila
