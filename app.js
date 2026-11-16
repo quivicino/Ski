@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  const VERSIONE = "0.2 · tutta Italia";
+  const VERSIONE = "Versione 2";
   const POSIZIONE_FINTA = { lat: 45.6879, lon: 7.3114, nome: "Pila, stazione delle cabinovie" };
   const ITALIA = { s: 35.3, w: 6.5, n: 47.2, e: 18.7 };
   const ZOOM_PISTE = 11;          // sotto questo zoom si vedono solo i comprensori
@@ -87,6 +87,7 @@
       maxZoom: 19, attribution: "Immagini © Esri",
     });
     cambiaSfondo("topo");
+    mappa.attributionControl.setPrefix("Qui-Ski · " + VERSIONE);
     for (const d of ORDINE_DIFF) livelli[d] = L.layerGroup();
     for (const k of ["impianti", "etichette", "stazioni", "locali", "comprensorio", "comprensori"]) livelli[k] = L.layerGroup();
     mappa.on("click", () => { mappa.closePopup(); togliEvidenza(); });
@@ -468,21 +469,53 @@
   /* ---------- posizione ---------- */
   function mettiIo(p) {
     io = p;
+    if (simulata && cerchio) { mappa.removeLayer(cerchio); cerchio = null; }
     if (marcaIo) marcaIo.setLatLng([p.lat, p.lon]);
     else marcaIo = L.marker([p.lat, p.lon], { icon: L.divIcon({ className: "", html: '<span class="io"></span>', iconSize: [18, 18], iconAnchor: [9, 9] }), zIndexOffset: 1000, interactive: false }).addTo(mappa);
-    $("simula").hidden = !simulata;
-    $("stato").textContent = simulata ? `Posizione simulata: ${POSIZIONE_FINTA.nome}.` : "Posizione dal GPS.";
+    $("simula").hidden = true; // niente riquadro "Simulazione" sulla mappa (lo dice solo la riga di stato nell'elenco)
+    $("stato").textContent = simulata ? `Posizione simulata: ${POSIZIONE_FINTA.nome}.` : `Posizione dal GPS${p.acc ? ` (precisione ${Math.round(p.acc)} m)` : ""}.`;
   }
   function inItalia(p) { return p.lat >= ITALIA.s && p.lat <= ITALIA.n && p.lon >= ITALIA.w && p.lon <= ITALIA.e; }
-  function posizione() {
+  /* GPS: watchPosition resta acceso e sposta il punto azzurro a ogni nuova posizione.
+     Finché non arriva una posizione vera (o se è fuori Italia, o se il GPS è negato) si usa quella simulata. */
+  let gpsAttivo = false, primaVera = null, cerchio = null;
+  const attesaVera = [];
+  function avviaGps() {
+    if (gpsAttivo || !navigator.geolocation) return;
+    gpsAttivo = true;
+    navigator.geolocation.watchPosition((pos) => {
+      const p = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy };
+      if (!inItalia(p)) { if (!io) usaFinta("sei fuori Italia"); return; }
+      const primaVolta = simulata || !io;
+      simulata = false;
+      mettiIo(p);
+      if (cerchio) cerchio.setLatLng([p.lat, p.lon]).setRadius(p.acc || 0);
+      else cerchio = L.circle([p.lat, p.lon], { radius: p.acc || 0, color: "#2f7cf6", weight: 1, fillOpacity: 0.08, interactive: false, renderer: rend }).addTo(mappa);
+      if (primaVolta) {
+        primaVera = p;
+        // la prima posizione vera arriva dopo la simulata: se non hai ancora mosso la mappa, inquadra dove sei
+        if (indice && !mosso) inquadraIntorno(p);
+        while (attesaVera.length) attesaVera.shift()(p);
+      }
+    }, (err) => {
+      const perche = err.code === 1 ? "il permesso per la posizione è negato" : err.code === 3 ? "il GPS non risponde" : "posizione non disponibile";
+      if (!io || simulata) usaFinta(perche);
+      if (err.code === 1) gpsAttivo = false;
+      while (attesaVera.length) attesaVera.shift()(null);
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 });
+  }
+  function usaFinta(perche) {
+    simulata = true;
+    mettiIo(POSIZIONE_FINTA);
+    if (perche) $("simula-testo").textContent = `sei a Pila (${perche})`;
+  }
+  // aspetta la prima posizione vera fino a "ms"; intanto, se non c'è niente, usa quella simulata
+  function posizione(ms = 6000) {
+    avviaGps();
+    if (io && !simulata) return Promise.resolve(io);
     return new Promise((ok) => {
-      const finta = () => { simulata = true; mettiIo(POSIZIONE_FINTA); ok(io); };
-      if (!navigator.geolocation) return finta();
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const p = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-        if (!inItalia(p)) return finta();
-        simulata = false; mettiIo(p); ok(io);
-      }, finta, { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+      const t = setTimeout(() => { if (!io) usaFinta(navigator.geolocation ? "il GPS non ha ancora risposto" : "il telefono non dà la posizione"); ok(io); }, ms);
+      attesaVera.push(() => { clearTimeout(t); if (!io) usaFinta(); ok(io); });
     });
   }
   function inquadraIntorno(p) {
@@ -558,7 +591,7 @@
   async function avvia() {
     creaMappa();
     collega();
-    $("versione").textContent = "Qui-Ski " + VERSIONE;
+    $("versione").textContent = "Qui-Ski · " + VERSIONE;
     try {
       indice = await (await fetch("dati/indice.json", { cache: "no-cache" })).json();
     } catch (e) {
